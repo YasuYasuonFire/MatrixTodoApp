@@ -4,10 +4,10 @@ import TaskCard from "./TaskCard";
 import { useTasks } from "@/hooks/use-tasks";
 
 const QUADRANTS = [
-  { id: 'important-urgent', title: 'Do', color: 'bg-red-500/10 dark:bg-red-500/20' },
-  { id: 'important-not-urgent', title: 'Schedule', color: 'bg-blue-500/10 dark:bg-blue-500/20' },
-  { id: 'not-important-urgent', title: 'Delegate', color: 'bg-yellow-500/10 dark:bg-yellow-500/20' },
-  { id: 'not-important-not-urgent', title: 'Eliminate', color: 'bg-gray-500/10 dark:bg-gray-500/20' }
+  { id: 'important-urgent', title: '緊急かつ重要', color: 'bg-red-500/10 dark:bg-red-500/20' },
+  { id: 'important-not-urgent', title: '重要だが緊急でない', color: 'bg-blue-500/10 dark:bg-blue-500/20' },
+  { id: 'not-important-urgent', title: '緊急だが重要でない', color: 'bg-yellow-500/10 dark:bg-yellow-500/20' },
+  { id: 'not-important-not-urgent', title: '緊急でなく重要でない', color: 'bg-gray-500/10 dark:bg-gray-500/20' }
 ];
 
 export default function TaskMatrix() {
