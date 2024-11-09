@@ -20,7 +20,19 @@ export const tasks = pgTable("tasks", {
 
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
-export const insertTaskSchema = createInsertSchema(tasks);
+
+// Custom task schema with date validation
+export const insertTaskSchema = z.object({
+  userId: z.number().optional(),
+  title: z.string().min(1, "Title is required"),
+  deadline: z.string().refine((date) => {
+    const parsedDate = new Date(date);
+    return !isNaN(parsedDate.getTime());
+  }, "Invalid date format"),
+  important: z.boolean(),
+  urgent: z.boolean(),
+});
+
 export const selectTaskSchema = createSelectSchema(tasks);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

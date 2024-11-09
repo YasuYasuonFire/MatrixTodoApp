@@ -23,13 +23,29 @@ export function registerRoutes(app: Express) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const result = insertTaskSchema.safeParse({ ...req.body, userId: req.user.id });
-    if (!result.success) {
-      return res.status(400).json({ message: "Invalid input", errors: result.error.flatten() });
-    }
+    try {
+      const result = insertTaskSchema.safeParse({ ...req.body, userId: req.user.id });
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid input", errors: result.error.flatten() });
+      }
 
-    const [newTask] = await db.insert(tasks).values(result.data).returning();
-    res.json(newTask);
+      // Parse and validate the date
+      const deadline = new Date(result.data.deadline);
+      if (isNaN(deadline.getTime())) {
+        return res.status(400).json({ message: "Invalid deadline date" });
+      }
+
+      const [newTask] = await db.insert(tasks).values({
+        ...result.data,
+        deadline,
+        userId: req.user.id,
+      }).returning();
+
+      res.json(newTask);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Error creating task" });
+    }
   });
 
   // Update a task
@@ -49,9 +65,19 @@ export function registerRoutes(app: Express) {
       return res.status(404).json({ message: "Task not found" });
     }
 
+    // Handle date conversion if deadline is being updated
+    const updates = { ...req.body };
+    if (updates.deadline) {
+      const deadline = new Date(updates.deadline);
+      if (isNaN(deadline.getTime())) {
+        return res.status(400).json({ message: "Invalid deadline date" });
+      }
+      updates.deadline = deadline;
+    }
+
     const [updatedTask] = await db
       .update(tasks)
-      .set(req.body)
+      .set(updates)
       .where(eq(tasks.id, taskId))
       .returning();
 

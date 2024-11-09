@@ -2,8 +2,22 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { insertTaskSchema } from "db/schema";
@@ -17,16 +31,29 @@ export default function CreateTaskDialog() {
     resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: "",
-      deadline: new Date().toISOString().split('T')[0],
+      deadline: new Date().toISOString().split("T")[0],
       important: false,
       urgent: false,
-    }
+    },
   });
 
   const onSubmit = async (values: any) => {
-    await createTask(values);
-    form.reset();
-    setOpen(false);
+    try {
+      // Ensure the deadline is a valid date string
+      const deadline = new Date(values.deadline);
+      if (isNaN(deadline.getTime())) {
+        throw new Error("Invalid date");
+      }
+      
+      await createTask({
+        ...values,
+        deadline: deadline.toISOString(),
+      });
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      console.error("Error creating task:", error);
+    }
   };
 
   return (
@@ -40,6 +67,9 @@ export default function CreateTaskDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
+          <DialogDescription>
+            Add a new task to your Eisenhower Matrix
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -63,7 +93,11 @@ export default function CreateTaskDialog() {
                 <FormItem>
                   <FormLabel>Deadline</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input 
+                      type="date" 
+                      {...field} 
+                      min={new Date().toISOString().split("T")[0]}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
